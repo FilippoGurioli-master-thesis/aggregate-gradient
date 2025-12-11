@@ -8,7 +8,9 @@ repositories {
 }
 
 kotlin {
-    linuxX64("native") {
+    jvm()
+
+    linuxX64 {
         binaries {
             sharedLib {
                 baseName = "simple_gradient"
@@ -23,6 +25,6 @@ kotlin {
                 implementation("it.unibo.collektive:collektive-stdlib:27.4.0")
             }
         }
-        val nativeMain by getting
+        val linuxX64Main by getting
     }
 }

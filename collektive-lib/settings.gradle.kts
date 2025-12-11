@@ -4,3 +4,4 @@ plugins {
 
 rootProject.name = "collektive-lib"
 include("lib")
+include("app")

@@ -2,11 +2,11 @@ package simple.gradient
 
 import it.unibo.collektive.Collektive
 
-class CollektiveEngine(nodeCount: Int, private val maxDegree: Int = 3) {
+class CollektiveEngine(val nodeCount: Int, private val maxDegree: Int = 3) {
     private val networkManager = NetworkManager(maxDegree)
 
     // mutable set of sources (you can control this from C#)
-    private val sources = mutableSetOf<Int>()
+    val sources = mutableSetOf<Int>()
 
     private val devices: List<Collektive<Int, Int>>
     private val lastValues: IntArray
