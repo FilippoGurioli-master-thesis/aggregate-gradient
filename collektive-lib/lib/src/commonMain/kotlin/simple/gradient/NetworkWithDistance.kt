@@ -155,4 +155,4 @@ data class Position(val x: Double, val y: Double, val z: Double) {
     }
 }
 
-data class Node(val id: Int, val position: Position)
+data class Node(val id: Int, var position: Position)

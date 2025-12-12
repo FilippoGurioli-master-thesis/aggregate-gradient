@@ -1,13 +1,16 @@
 package org.example
 
 import simple.gradient.CollektiveEngine
+import simple.gradient.CollektiveEngineWithDistance
+import simple.gradient.Position
 import simple.gradient.jvmCreate
 import simple.gradient.jvmDestroy
 import simple.gradient.jvmGetValue
 import simple.gradient.jvmSetSource
 import simple.gradient.jvmStep
+import kotlin.random.Random
 
-fun main() {
+fun main4() {
     val engine = CollektiveEngine(10)
 
     engine.setSource(0, true)
@@ -45,4 +48,37 @@ fun main3() {
     }
 
     jvmDestroy(handle)
+}
+
+fun main() {
+    val nodeCount = 10
+    val maxDistance = 4.0
+    val engine = CollektiveEngineWithDistance(nodeCount, maxDistance)
+    engine.setSource(0, true)
+    (0 until nodeCount).forEach { id ->
+        engine.updateNodePosition(id, Position(0.0, maxDistance * id, 0.0))
+    }
+
+    repeat(10) { round ->
+        println("Round $round")
+        engine.stepOnce()
+        (0 until nodeCount).forEach { id -> println("$id -> ${engine.getValue(id)}") }
+        println()
+    }
+
+    println("New positions:")
+    val rng = Random(42)
+    (0 until nodeCount).forEach { id ->
+        val x = rng.nextInt(10)
+        val y = rng.nextInt(10)
+        println("$id -> $x, $y")
+        engine.updateNodePosition(id, Position(x.toDouble(), y.toDouble(), 0.0))
+    }
+
+    repeat(10) { round ->
+        println("Round $round")
+        engine.stepOnce()
+        (0 until nodeCount).forEach { id -> println("$id -> ${engine.getValue(id)}") }
+        println()
+    }
 }

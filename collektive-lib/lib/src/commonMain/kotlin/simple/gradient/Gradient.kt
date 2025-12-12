@@ -2,8 +2,17 @@ package simple.gradient
 
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.aggregate.api.share
-import it.unibo.collektive.aggregate.values
-import it.unibo.collektive.stdlib.collapse.min
+import kotlin.Double.Companion.POSITIVE_INFINITY
 
 fun Aggregate<Node>.gradient(source: Boolean): Double =
-    TODO("Implement gradient exploiting position taken from unity")
+    share(POSITIVE_INFINITY) { field ->
+        if (source) return@share 0.0
+
+        val best = field.neighbors
+            .list
+            .minOfOrNull { (nbr, nbrGrad) ->
+                if (nbrGrad.isInfinite()) POSITIVE_INFINITY
+                else nbrGrad + Position.distance(localId.position, nbr.position)
+            }
+        best ?: POSITIVE_INFINITY
+    }

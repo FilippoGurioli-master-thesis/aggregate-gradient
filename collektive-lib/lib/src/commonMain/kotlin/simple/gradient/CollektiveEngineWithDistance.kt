@@ -26,7 +26,10 @@ class CollektiveEngineWithDistance(nodeCount: Int, private val maxDistance: Doub
         }
     }
 
-    fun updateNodePosition(nodeId: Int, position: Position) = networkManager.updatePosition(nodeId, position)
+    fun updateNodePosition(nodeId: Int, position: Position) {
+        devices.first { d -> d.localId.id == nodeId }.localId.position = position
+        networkManager.updatePosition(nodeId, position)
+    }
 
     fun setSource(nodeId: Int, isSource: Boolean) {
         if (isSource) sources.add(nodeId) else sources.remove(nodeId)
