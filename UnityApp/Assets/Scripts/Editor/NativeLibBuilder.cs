@@ -4,11 +4,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using Debug = UnityEngine.Debug;
 
 namespace Editor
 {
-
     public static class NativeLibBuilder
     {
         private const string KotlinProjectPath = "../collektive-lib";
@@ -109,6 +110,17 @@ namespace Editor
             importer.SetPlatformData(BuildTarget.StandaloneLinux64, "CPU", "x86_64");
             importer.SaveAndReimport();
             Debug.Log("NativeLibBuilder: PluginImporter configuration updated for libsimple_gradient.so");
+        }
+    }
+
+    public sealed class NativeLibBuildPreprocessor : IPreprocessBuildWithReport
+    {
+        public int callbackOrder => 0;
+
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            Debug.Log("NativeLibBuildPreprocessor: Rebuilding native lib before build");
+            NativeLibBuilder.RebuildNativeLibrary();
         }
     }
 }
