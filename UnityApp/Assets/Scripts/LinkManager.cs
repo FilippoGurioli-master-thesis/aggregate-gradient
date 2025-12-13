@@ -24,12 +24,11 @@ public class LinksManager : MonoBehaviour
         {
             var key = MakeKey(aNode.Id, bNode.Id);
             toRemove.Remove(key);
-            if (!_linksByKey.TryGetValue(key, out var link) || link == null)
-            {
-                var linkInstance = Instantiate(linkPrefab);
-                linkInstance.Initialize(aNode, bNode);
-                _linksByKey[key] = linkInstance;
-            }
+            if (_linksByKey.TryGetValue(key, out var link) && link != null)
+                continue;
+            var linkInstance = Instantiate(linkPrefab);
+            linkInstance.Initialize(aNode, bNode);
+            _linksByKey[key] = linkInstance;
         }
 
         foreach (var key in toRemove)
