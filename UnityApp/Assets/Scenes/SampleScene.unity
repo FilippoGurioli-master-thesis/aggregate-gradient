@@ -165,12 +165,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollektiveEngine
   nodeCount: 40
-  maxDistance: 3
-  sources: 00000000
+  maxDistance: 4
+  sources: 000000000100000027000000
   timeScale: 0.05
   rounds: 10
   nodePrefab: {fileID: 481884058362055207, guid: 8222f78618b9ac314ab51a649986c1a6, type: 3}
-  distance: 1.5
+  distance: 3
   noStop: 1
 --- !u!114 &117283547
 MonoBehaviour:
