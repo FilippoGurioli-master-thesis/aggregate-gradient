@@ -1,8 +1,16 @@
 using System.Collections.Generic;
+using System.Linq;
+using Data;
+using Engine;
 using UnityEngine;
 
-public class CollektiveEngine : MonoBehaviour
+public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
 {
+    [Header("Socket")]
+    [SerializeField] private string host;
+    [SerializeField] private int port;
+
+    [Header("Engine")]
     [SerializeField] private int nodeCount = 10;
     [SerializeField] private double maxDistance = 3f;
     [SerializeField] private List<int> sources = new List<int> { 0 };
@@ -12,42 +20,65 @@ public class CollektiveEngine : MonoBehaviour
     [SerializeField] private float distance = 3f;
     [SerializeField] private bool noStop;
 
-    private int _handle;
     private int _currentRound;
     private readonly Dictionary<int, NodeBehaviour> _nodes = new();
+    private SocketEngine _engine;
+    private Dictionary<int, double> _state = new();
+    private HashSet<Link> _links = new();
 
     private void Awake()
     {
-        _handle = CollektiveApiWithDistance.Create(nodeCount, maxDistance);
+        _engine = new SocketEngine(host, port);
+        _engine.Create(nodeCount, maxDistance);
         foreach (var source in sources)
-            CollektiveApiWithDistance.SetSource(_handle, source, true);
+        {
+            _engine.SetSource(source);
+            _state[source] = 0;
+        }
+        for (var i = 0; i < nodeCount; i++)
+        {
+            if (sources.Contains(i)) continue;
+            _state[i] = double.PositiveInfinity;
+        }
+        _engine.OnNewState += UpdateState;
         Time.timeScale = timeScale;
         CreateNodeTree();
     }
 
-    private void FixedUpdate() //internal simulation loop -> currently bound to unity | to be uncorrelated
+    private void UpdateState(List<(double value, List<int> neighbors)> state)
+    {
+        for (int i = 0; i < state.Count; i++)
+            _state[i] = state[i].value;
+        var newLinks = new HashSet<Link>();
+        for (int i = 0; i < state.Count; i++)
+            foreach (var neighbor in state[i].neighbors)
+                newLinks.Add(new Link(i, neighbor));
+        _links.RemoveWhere(link => !newLinks.Contains(link));
+        foreach (var link in newLinks)
+            _links.Add(link);
+    }
+
+    private void FixedUpdate()
     {
         if (!noStop && _currentRound >= rounds) return;
         _currentRound++;
         foreach (var (_, node) in _nodes)
-            CollektiveApiWithDistance.UpdatePosition(_handle, node.Id, node.transform.position);
-        CollektiveApiWithDistance.Step(_handle, 1);
+            _engine.NewPosition(node.Id, node.transform.position);
+        _engine.Step();
+        _engine.Poll();
     }
+
+    private void OnDestroy() => _engine.Dispose();
 
     private void CreateNodeTree()
     {
-        // 1. Compute positions using a BFS-tree layout rooted at node 0
-        var positions = ComputeTreeLayout(_handle, nodeCount, distance, distance * 2);
-
-        // 2. Instantiate nodes using the computed positions
+        var positions = ComputeTreeLayout(nodeCount, distance, distance * 2);
         for (var i = 0; i < nodeCount; i++)
         {
             if (!positions.TryGetValue(i, out var position))
             {
-                // Fallback in case something went wrong; shouldn't normally happen
                 position = Vector3.zero;
             }
-
             var go = Instantiate(nodePrefab, position, Quaternion.identity);
             var node = go.GetComponent<NodeBehaviour>();
             node.Initialize(i, this);
@@ -62,90 +93,64 @@ public class CollektiveEngine : MonoBehaviour
     /// - Nodes in the same level are spaced horizontally.
     /// - Unreachable nodes are placed in a separate row at the bottom.
     /// </summary>
-    private static Dictionary<int, Vector3> ComputeTreeLayout(
-        int handle,
+    private Dictionary<int, Vector3> ComputeTreeLayout(
         int nodeCount,
         float horizontalSpacing,
         float verticalSpacing)
     {
         var positions = new Dictionary<int, Vector3>(nodeCount);
-
         var visited = new HashSet<int>();
-        var depth = new Dictionary<int, int>();         // nodeId -> layer index
-        var layers = new Dictionary<int, List<int>>();  // layer index -> nodes in that layer
-
+        var depth = new Dictionary<int, int>();
+        var layers = new Dictionary<int, List<int>>();
         var queue = new Queue<int>();
-
-        // Root is node 0
         const int rootId = 0;
         visited.Add(rootId);
         depth[rootId] = 0;
         layers[0] = new List<int> { rootId };
         queue.Enqueue(rootId);
-
-        // BFS to build a spanning tree from node 0
         while (queue.Count > 0)
         {
             var current = queue.Dequeue();
             var currentDepth = depth[current];
-
-            // Get neighbors from the native engine
-            var neighbors = CollektiveApiWithDistance.GetNeighborhood(handle, current);
+            var neighbors = GetNeighborsOf(current);
             if (neighbors == null) continue;
-
             foreach (var neighbor in neighbors)
             {
                 if (!visited.Add(neighbor)) continue;
-
                 var d = currentDepth + 1;
                 depth[neighbor] = d;
-
                 if (!layers.TryGetValue(d, out var list))
                 {
                     list = new List<int>();
                     layers[d] = list;
                 }
-
                 list.Add(neighbor);
                 queue.Enqueue(neighbor);
             }
         }
-
-        // Handle unreachable nodes (if the graph is not fully connected)
         var unreachable = new List<int>();
         for (var i = 0; i < nodeCount; i++)
         {
             if (!visited.Contains(i))
-            {
                 unreachable.Add(i);
-            }
         }
 
         if (unreachable.Count > 0)
         {
-            // Put them in a separate layer after the last BFS layer
             var extraLayerIndex = layers.Count;
             layers[extraLayerIndex] = unreachable;
             foreach (var n in unreachable)
-            {
                 depth[n] = extraLayerIndex;
-            }
         }
-
-        // Now assign actual world positions per layer
         foreach (var kvp in layers)
         {
             var layerIndex = kvp.Key;
             var nodesInLayer = kvp.Value;
-
             var count = nodesInLayer.Count;
             if (count == 0) continue;
-
-            // Center the layer around x = 0
             var totalWidth = (count - 1) * horizontalSpacing;
             var startX = -totalWidth / 2f;
-            var y = -layerIndex * verticalSpacing; // downwards per level
-
+            var y = -layerIndex * verticalSpacing;
             for (var i = 0; i < count; i++)
             {
                 var nodeId = nodesInLayer[i];
@@ -153,29 +158,17 @@ public class CollektiveEngine : MonoBehaviour
                 positions[nodeId] = new Vector3(x, y, 0f);
             }
         }
-
         return positions;
     }
 
-    public double GetValue(int id) => CollektiveApiWithDistance.GetValue(_handle, id);
+    private List<int> GetNeighborsOf(int id) => _links
+      .Where(l => l.Node1 == id || l.Node2 == id)
+      .Select(l => l.Node1 == id ? l.Node2 : l.Node1)
+      .ToList();
 
-    public List<(NodeBehaviour, NodeBehaviour)> GetAllLinks()
-    {
-        var result = new List<(NodeBehaviour, NodeBehaviour)>();
-        foreach (var (id, node) in _nodes)
-        {
-            var neighborhood = CollektiveApiWithDistance.GetNeighborhood(_handle, node.Id);
-            foreach (var neighborId in neighborhood)
-            {
-                if (!_nodes.TryGetValue(neighborId, out var neighborNode))
-                    continue;
-                if (node.Id >= neighborNode.Id)
-                    continue;
-                result.Add((node, neighborNode));
-            }
-        }
-        return result;
-    }
+    public double GetValue(int id) => _state[id];
+
+    public List<(NodeBehaviour, NodeBehaviour)> GetAllLinks() => _links.Select(l => (_nodes[l.Node1], _nodes[l.Node2])).ToList();
 
     public bool IsSource(int id) => sources.Contains(id);
 }

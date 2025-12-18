@@ -1,15 +1,22 @@
 using UnityEngine;
 
+public interface IEngine
+{
+    double GetValue(int id);
+
+    bool IsSource(int id);
+}
+
 [RequireComponent(typeof(Renderer))]
 public class NodeBehaviour : MonoBehaviour
 {
-    private CollektiveEngine _engine;
+    private IEngine _engine;
     private Renderer _renderer;
     [SerializeField] private double currentValue;
 
     public int Id { get; private set; }
 
-    public void Initialize(int id, CollektiveEngine engine)
+    public void Initialize(int id, IEngine engine)
     {
         Id = id;
         _engine = engine;

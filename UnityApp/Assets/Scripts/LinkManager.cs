@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(CollektiveEngine))]
 public class LinksManager : MonoBehaviour
 {
     [SerializeField] private LinkBehaviour linkPrefab;
 
-    private CollektiveEngine _engine;
+    private IEngineWithLinks _engine;
     private readonly Dictionary<(int a, int b), LinkBehaviour> _linksByKey = new();
 
     private void Start()
     {
-        _engine = GetComponent<CollektiveEngine>();
+        _engine = GetComponent<IEngineWithLinks>();
         RebuildLinks();
     }
 
@@ -49,3 +48,9 @@ public class LinksManager : MonoBehaviour
 
     private static (int a, int b) MakeKey(int id1, int id2) => id1 < id2 ? (id1, id2) : (id2, id1);
 }
+
+public interface IEngineWithLinks
+{
+    public List<(NodeBehaviour, NodeBehaviour)> GetAllLinks();
+}
+

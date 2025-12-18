@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &117283544
+--- !u!1 &135303635
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,23 +127,56 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 117283545}
-  - component: {fileID: 117283546}
-  - component: {fileID: 117283547}
+  - component: {fileID: 135303638}
+  - component: {fileID: 135303637}
+  - component: {fileID: 135303636}
   m_Layer: 0
-  m_Name: CollektiveEngine
+  m_Name: CollektiveEngineNative
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &117283545
+  m_IsActive: 0
+--- !u!114 &135303636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 135303635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d556f9c28ec9840f91410a4b74c631f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CollektiveEngineNative
+  nodeCount: 10
+  maxDistance: 3
+  sources: 00000000
+  timeScale: 0.1
+  rounds: 10
+  nodePrefab: {fileID: 481884058362055207, guid: 8222f78618b9ac314ab51a649986c1a6, type: 3}
+  distance: 3
+  noStop: 1
+--- !u!114 &135303637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 135303635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be4d26acfb146ed8ba024e195a2f528, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LinksManager
+  linkPrefab: {fileID: 7225181229245948336, guid: 51628547c6d084d9ab7fbac951beebe4, type: 3}
+--- !u!4 &135303638
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 117283544}
+  m_GameObject: {fileID: 135303635}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -152,39 +185,74 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &117283546
+--- !u!1 &271163486
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 271163489}
+  - component: {fileID: 271163488}
+  - component: {fileID: 271163487}
+  m_Layer: 0
+  m_Name: CollektiveEngineSocket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &271163487
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 117283544}
+  m_GameObject: {fileID: 271163486}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3822810292f4720b49421840948cb71, type: 3}
+  m_Script: {fileID: 11500000, guid: d6d9093dc0e3ce1cab6fe58cd1ce3c99, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CollektiveEngine
-  nodeCount: 40
-  maxDistance: 4
-  sources: 000000000100000027000000
-  timeScale: 0.05
+  m_EditorClassIdentifier: Assembly-CSharp::CollektiveEngineSocket
+  host: 127.0.0.1
+  port: 9090
+  nodeCount: 2
+  maxDistance: 3
+  sources: 00000000
+  timeScale: 0.1
   rounds: 10
   nodePrefab: {fileID: 481884058362055207, guid: 8222f78618b9ac314ab51a649986c1a6, type: 3}
   distance: 3
   noStop: 1
---- !u!114 &117283547
+--- !u!114 &271163488
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 117283544}
+  m_GameObject: {fileID: 271163486}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9be4d26acfb146ed8ba024e195a2f528, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LinksVisualizer
+  m_EditorClassIdentifier: Assembly-CSharp::LinksManager
   linkPrefab: {fileID: 7225181229245948336, guid: 51628547c6d084d9ab7fbac951beebe4, type: 3}
+--- !u!4 &271163489
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271163486}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -711,5 +779,6 @@ SceneRoots:
   - {fileID: 330585546}
   - {fileID: 410087041}
   - {fileID: 832575519}
-  - {fileID: 117283545}
+  - {fileID: 271163489}
+  - {fileID: 135303638}
   - {fileID: 1699428178}
