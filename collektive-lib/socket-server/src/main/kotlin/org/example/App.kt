@@ -14,9 +14,8 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.Executors
 import org.example.message.CreateSimulation
-import org.example.message.Neighbor
-import org.example.message.NeighborReq
 import org.example.message.NewPosition
+import org.example.message.NodeState
 import org.example.message.SetSource
 import org.example.message.State
 import org.example.message.Step
@@ -27,6 +26,7 @@ import java.text.ParseException
 val json = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
+    allowSpecialFloatingPointValues = true
 }
 
 private val engines = mutableMapOf<String, CollektiveEngineWithDistance>()
@@ -51,11 +51,20 @@ object App {
             println("Client connected: $remote")
             val reader = BufferedReader(InputStreamReader(s.getInputStream(), Charsets.UTF_8))
             val writer = BufferedWriter(OutputStreamWriter(s.getOutputStream(), Charsets.UTF_8))
-            while (true) {
-                val line = reader.readLine() ?: break
-                dispatch(remote, line, writer)
+            try {
+                while (true) {
+                    val line = reader.readLine() ?: break
+                    try {
+                        dispatch(remote, line, writer)
+                    } catch (e: Exception) {
+                        System.err.println("Error handling message from $remote: $line")
+                        e.printStackTrace()
+                        break
+                    }
+                }
+            } finally {
+                println("Client disconnected: $remote")
             }
-            println("Client disconnected: $remote")
         }
     }
 
@@ -77,16 +86,14 @@ object App {
             "step" -> {
                 val req = json.decodeFromJsonElement<Step>(data)
                 engines[remote]?.stepMany(req.stepCount)
-                send(writer, State(engines[remote]?.getValues() ?: return))
+                val engine = engines[remote] ?: return
+                send(writer, State(
+                    engine.getValues().mapIndexed { index, value -> NodeState(value, engine.getNeighborhood(index))}.toList()
+                ))
             }
             "newPosition" -> {
                 val req = json.decodeFromJsonElement<NewPosition>(data)
                 engines[remote]?.updateNodePosition(req.nodeId, Position(req.x, req.y, req.z))
-            }
-            "neighbor" -> {
-                val req = json.decodeFromJsonElement<NeighborReq>(data)
-                val neighbor = Neighbor(engines[remote]?.getNeighborhood(req.nodeId) ?: return)
-                send(writer, neighbor)
             }
             else -> {
                 throw ParseException("operation $op not supported", 0)
@@ -94,7 +101,7 @@ object App {
         }
     }
 
-    private fun send(writer: BufferedWriter, response: Any) {
+    private fun send(writer: BufferedWriter, response: State) {
         writer.write(json.encodeToString(response))
         writer.newLine()
         writer.flush()

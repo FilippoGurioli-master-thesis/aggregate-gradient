@@ -16,13 +16,10 @@ data class Step(val stepCount: Int = 1)
 @Serializable
 data class NewPosition(val nodeId: Int, val x: Double, val y: Double, val z: Double)
 
-@Serializable
-data class NeighborReq(val nodeId: Int)
-
 /*--------------- OUTPUT TYPES -------------------*/
 
 @Serializable
-data class State(val values: List<Double>)
+data class State(val values: List<NodeState>)
 
 @Serializable
-data class Neighbor(val neighbors: Set<Int>)
+data class NodeState(val value: Double, val neighbors: Set<Int>)
