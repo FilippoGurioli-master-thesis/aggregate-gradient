@@ -153,10 +153,10 @@ MonoBehaviour:
   maxDistance: 3
   sources: 00000000
   timeScale: 0.1
-  rounds: 10
+  rounds: 1000
   nodePrefab: {fileID: 481884058362055207, guid: 8222f78618b9ac314ab51a649986c1a6, type: 3}
   distance: 3
-  noStop: 1
+  noStop: 0
 --- !u!114 &135303637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -217,7 +217,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollektiveEngineSocket
   host: 127.0.0.1
   port: 9090
-  nodeCount: 2
+  nodeCount: 10
   maxDistance: 3
   sources: 00000000
   timeScale: 0.1

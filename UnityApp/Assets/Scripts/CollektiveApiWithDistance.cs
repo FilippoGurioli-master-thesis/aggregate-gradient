@@ -14,7 +14,6 @@ internal static class CollektiveApiWithDistance
     public static extern void Destroy(int handle);
 
     [DllImport(LibName, EntryPoint = "set_source_with_distance", CallingConvention = CallingConvention.Cdecl)]
-    [return: MarshalAs(UnmanagedType.I1)]
     public static extern void SetSource(int handle, int nodeId, [MarshalAs(UnmanagedType.I1)] bool isSource);
 
     [DllImport(LibName, EntryPoint = "clear_sources_with_distance", CallingConvention = CallingConvention.Cdecl)]
@@ -34,6 +33,66 @@ internal static class CollektiveApiWithDistance
 
     [DllImport(LibName, EntryPoint = "update_position", CallingConvention = CallingConvention.Cdecl)]
     private static extern void UpdatePosition(int handle, int nodeId, double x, double y, double z);
+
+    [DllImport(LibName, EntryPoint = "step_and_get_state_with_distance", CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr StepAndGetStateWithDistance(int handle, int rounds, out int outSize);
+
+    [DllImport(LibName, EntryPoint = "free_state_buffer", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void FreeStateBuffer(IntPtr ptr);
+
+    public static List<(double value, List<int> neighbors)> StepAndGetState(int handle, int rounds)
+    {
+        var ptr = StepAndGetStateWithDistance(handle, rounds, out var sizeBytes);
+        if (ptr == IntPtr.Zero || sizeBytes <= 0)
+            return new List<(double, List<int>)>();
+        try
+        {
+            var bytes = new byte[sizeBytes];
+            Marshal.Copy(ptr, bytes, 0, sizeBytes);
+            int offset = 0;
+            int nodeCount = ReadInt32LE(bytes, ref offset);
+            var result = new List<(double value, List<int> neighbors)>(nodeCount);
+            for (int i = 0; i < nodeCount; i++)
+            {
+                double value = ReadDoubleLE(bytes, ref offset);
+                int nCount = ReadInt32LE(bytes, ref offset);
+                var neigh = new List<int>(nCount);
+                for (int k = 0; k < nCount; k++)
+                    neigh.Add(ReadInt32LE(bytes, ref offset));
+                result.Add((value, neigh));
+            }
+            return result;
+        }
+        finally
+        {
+            FreeStateBuffer(ptr);
+        }
+    }
+
+    private static int ReadInt32LE(byte[] b, ref int o)
+    {
+        int v = b[o]
+                | (b[o + 1] << 8)
+                | (b[o + 2] << 16)
+                | (b[o + 3] << 24);
+        o += 4;
+        return v;
+    }
+
+    private static double ReadDoubleLE(byte[] b, ref int o)
+    {
+        long v =
+            (long)b[o]
+            | ((long)b[o + 1] << 8)
+            | ((long)b[o + 2] << 16)
+            | ((long)b[o + 3] << 24)
+            | ((long)b[o + 4] << 32)
+            | ((long)b[o + 5] << 40)
+            | ((long)b[o + 6] << 48)
+            | ((long)b[o + 7] << 56);
+        o += 8;
+        return BitConverter.Int64BitsToDouble(v);
+    }
 
     public static void UpdatePosition(int handle, int nodeId, Vector3 position) => UpdatePosition(handle, nodeId, position.x, position.y, position.z);
 

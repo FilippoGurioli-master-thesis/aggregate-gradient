@@ -15,6 +15,7 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
     private int _handle;
     private int _currentRound;
     private readonly Dictionary<int, NodeBehaviour> _nodes = new();
+    private List<(double value, List<int> neighbors)> _state = new();
 
     private void Awake()
     {
@@ -22,16 +23,22 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
         foreach (var source in sources)
             CollektiveApiWithDistance.SetSource(_handle, source, true);
         Time.timeScale = timeScale;
+        _state = CollektiveApiWithDistance.StepAndGetState(_handle, 1);
         CreateNodeTree();
     }
 
     private void FixedUpdate() //internal simulation loop -> currently bound to unity | to be uncorrelated
     {
-        if (!noStop && _currentRound >= rounds) return;
-        _currentRound++;
+        if (!noStop)
+        {
+            Debug.Log($"{_currentRound}/{rounds}");
+            _currentRound++;
+            if (_currentRound >= rounds)
+                Application.Quit();
+        }
         foreach (var (_, node) in _nodes)
             CollektiveApiWithDistance.UpdatePosition(_handle, node.Id, node.transform.position);
-        CollektiveApiWithDistance.Step(_handle, 1);
+        _state = CollektiveApiWithDistance.StepAndGetState(_handle, 1);
     }
 
     private void CreateNodeTree()
@@ -62,7 +69,7 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
     /// - Nodes in the same level are spaced horizontally.
     /// - Unreachable nodes are placed in a separate row at the bottom.
     /// </summary>
-    private static Dictionary<int, Vector3> ComputeTreeLayout(
+    private Dictionary<int, Vector3> ComputeTreeLayout(
         int handle,
         int nodeCount,
         float horizontalSpacing,
@@ -90,7 +97,7 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
             var currentDepth = depth[current];
 
             // Get neighbors from the native engine
-            var neighbors = CollektiveApiWithDistance.GetNeighborhood(handle, current);
+            var neighbors = _state[current].neighbors;
             if (neighbors == null) continue;
 
             foreach (var neighbor in neighbors)
@@ -157,14 +164,14 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
         return positions;
     }
 
-    public double GetValue(int id) => CollektiveApiWithDistance.GetValue(_handle, id);
+    public double GetValue(int id) => _state[id].value;
 
     public List<(NodeBehaviour, NodeBehaviour)> GetAllLinks()
     {
         var result = new List<(NodeBehaviour, NodeBehaviour)>();
         foreach (var (id, node) in _nodes)
         {
-            var neighborhood = CollektiveApiWithDistance.GetNeighborhood(_handle, node.Id);
+            var neighborhood = _state[node.Id].neighbors;
             foreach (var neighborId in neighborhood)
             {
                 if (!_nodes.TryGetValue(neighborId, out var neighborNode))
