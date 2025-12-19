@@ -40,13 +40,16 @@ internal static class CollektiveApiWithDistance
     [DllImport(LibName, EntryPoint = "free_state_buffer", CallingConvention = CallingConvention.Cdecl)]
     private static extern void FreeStateBuffer(IntPtr ptr);
 
-    public static List<(double value, List<int> neighbors)> StepAndGetState(int handle, int rounds)
+    public static List<(double value, List<int> neighbors)> StepAndGetState(int handle, int rounds, UnityCsvTiming timing)
     {
+        var tCall0 = timing.NowTicks();
         var ptr = StepAndGetStateWithDistance(handle, rounds, out var sizeBytes);
+        var tCall1 = timing.NowTicks();
         if (ptr == IntPtr.Zero || sizeBytes <= 0)
             return new List<(double, List<int>)>();
         try
         {
+            var tParse0 = timing.NowTicks();
             var bytes = new byte[sizeBytes];
             Marshal.Copy(ptr, bytes, 0, sizeBytes);
             int offset = 0;
@@ -61,6 +64,10 @@ internal static class CollektiveApiWithDistance
                     neigh.Add(ReadInt32LE(bytes, ref offset));
                 result.Add((value, neigh));
             }
+
+            var tParse1 = timing.NowTicks();
+            timing.Write("step.native.call", tCall0, tCall1);
+            timing.Write("step.native.parse", tParse0, tParse1);
             return result;
         }
         finally

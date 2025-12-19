@@ -16,14 +16,16 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
     private int _currentRound;
     private readonly Dictionary<int, NodeBehaviour> _nodes = new();
     private List<(double value, List<int> neighbors)> _state = new();
+    private UnityCsvTiming _timing;
 
     private void Awake()
     {
+        _timing = new UnityCsvTiming("unity_native.csv");
         _handle = CollektiveApiWithDistance.Create(nodeCount, maxDistance);
         foreach (var source in sources)
             CollektiveApiWithDistance.SetSource(_handle, source, true);
         Time.timeScale = timeScale;
-        _state = CollektiveApiWithDistance.StepAndGetState(_handle, 1);
+        _state = CollektiveApiWithDistance.StepAndGetState(_handle, 1, _timing);
         CreateNodeTree();
     }
 
@@ -38,7 +40,15 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
         }
         foreach (var (_, node) in _nodes)
             CollektiveApiWithDistance.UpdatePosition(_handle, node.Id, node.transform.position);
-        _state = CollektiveApiWithDistance.StepAndGetState(_handle, 1);
+        var t0 = _timing.NowTicks();
+        _state = CollektiveApiWithDistance.StepAndGetState(_handle, 1, _timing);
+        var t1 = _timing.NowTicks();
+        _timing.Write("step.unity.e2e", t0, t1);
+    }
+
+    private void OnDestroy()
+    {
+        _timing.Dispose();
     }
 
     private void CreateNodeTree()
