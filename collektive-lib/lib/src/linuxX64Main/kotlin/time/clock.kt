@@ -1,5 +1,11 @@
 package time
 
-import kotlin.time.TimeSource
+import kotlinx.cinterop.*
+import platform.posix.*
 
-actual fun nanoTime(): Long = TimeSource.Monotonic.markNow().elapsedNow().inWholeNanoseconds
+@OptIn(ExperimentalForeignApi::class)
+actual fun nanoTime(): Long = memScoped {
+    val ts = alloc<timespec>()
+    clock_gettime(CLOCK_MONOTONIC, ts.ptr)
+    ts.tv_sec * 1_000_000_000L + ts.tv_nsec
+}
