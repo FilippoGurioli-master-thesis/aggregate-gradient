@@ -1,19 +1,38 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
 {
-    [SerializeField] private int nodeCount = 10;
-    [SerializeField] private double maxDistance = 3f;
-    [SerializeField] private List<int> sources = new List<int> { 0 };
-    [SerializeField] private float timeScale = 0.1f;
-    [SerializeField] private int rounds = 10;
-    [SerializeField] private GameObject nodePrefab;
-    [SerializeField] private float distance = 3f;
-    [SerializeField] private bool noStop;
+    [SerializeField]
+    private int nodeCount = 10;
+
+    [SerializeField]
+    private double maxDistance = 3f;
+
+    [SerializeField]
+    private List<int> sources = new List<int> { 0 };
+
+    [SerializeField]
+    private float timeScale = 0.1f;
+
+    [SerializeField]
+    public int rounds = 10;
+
+    [SerializeField]
+    private GameObject nodePrefab;
+
+    [SerializeField]
+    private float distance = 3f;
+
+    [SerializeField]
+    private bool noStop;
 
     private int _handle;
-    private int _currentRound;
+    public int _currentRound;
     private readonly Dictionary<int, NodeBehaviour> _nodes = new();
     private List<(double value, List<int> neighbors)> _state = new();
     private UnityCsvTiming _timing;
@@ -33,10 +52,16 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
     {
         if (!noStop)
         {
-            Debug.Log($"{_currentRound}/{rounds}");
+            Debug.Log($"SHELL: {_currentRound}/{rounds}");
             _currentRound++;
             if (_currentRound >= rounds)
+            {
+#if UNITY_EDITOR
+                EditorApplication.Exit(0);
+#else
                 Application.Quit();
+#endif
+            }
         }
         foreach (var (_, node) in _nodes)
             CollektiveApiWithDistance.UpdatePosition(_handle, node.Id, node.transform.position);
@@ -83,13 +108,14 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
         int handle,
         int nodeCount,
         float horizontalSpacing,
-        float verticalSpacing)
+        float verticalSpacing
+    )
     {
         var positions = new Dictionary<int, Vector3>(nodeCount);
 
         var visited = new HashSet<int>();
-        var depth = new Dictionary<int, int>();         // nodeId -> layer index
-        var layers = new Dictionary<int, List<int>>();  // layer index -> nodes in that layer
+        var depth = new Dictionary<int, int>(); // nodeId -> layer index
+        var layers = new Dictionary<int, List<int>>(); // layer index -> nodes in that layer
 
         var queue = new Queue<int>();
 
@@ -108,11 +134,13 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
 
             // Get neighbors from the native engine
             var neighbors = _state[current].neighbors;
-            if (neighbors == null) continue;
+            if (neighbors == null)
+                continue;
 
             foreach (var neighbor in neighbors)
             {
-                if (!visited.Add(neighbor)) continue;
+                if (!visited.Add(neighbor))
+                    continue;
 
                 var d = currentDepth + 1;
                 depth[neighbor] = d;
@@ -156,7 +184,8 @@ public class CollektiveEngineNative : MonoBehaviour, IEngine, IEngineWithLinks
             var nodesInLayer = kvp.Value;
 
             var count = nodesInLayer.Count;
-            if (count == 0) continue;
+            if (count == 0)
+                continue;
 
             // Center the layer around x = 0
             var totalWidth = (count - 1) * horizontalSpacing;

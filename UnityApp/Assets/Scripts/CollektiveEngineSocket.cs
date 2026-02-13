@@ -10,18 +10,36 @@ using UnityEditor;
 public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
 {
     [Header("Socket")]
-    [SerializeField] private string host;
-    [SerializeField] private int port;
+    [SerializeField]
+    private string host;
+
+    [SerializeField]
+    private int port;
 
     [Header("Engine")]
-    [SerializeField] private int nodeCount = 10;
-    [SerializeField] private double maxDistance = 3f;
-    [SerializeField] private List<int> sources = new List<int> { 0 };
-    [SerializeField] private float timeScale = 0.1f;
-    [SerializeField] private int rounds = 10;
-    [SerializeField] private GameObject nodePrefab;
-    [SerializeField] private float distance = 3f;
-    [SerializeField] private bool noStop;
+    [SerializeField]
+    private int nodeCount = 10;
+
+    [SerializeField]
+    private double maxDistance = 3f;
+
+    [SerializeField]
+    private List<int> sources = new List<int> { 0 };
+
+    [SerializeField]
+    private float timeScale = 0.1f;
+
+    [SerializeField]
+    private int rounds = 10;
+
+    [SerializeField]
+    private GameObject nodePrefab;
+
+    [SerializeField]
+    private float distance = 3f;
+
+    [SerializeField]
+    private bool noStop;
 
     private int _currentRound;
     private readonly Dictionary<int, NodeBehaviour> _nodes = new();
@@ -46,7 +64,8 @@ public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
         }
         for (var i = 0; i < nodeCount; i++)
         {
-            if (sources.Contains(i)) continue;
+            if (sources.Contains(i))
+                continue;
             _state[i] = double.PositiveInfinity;
         }
         _engine.OnNewState += UpdateState;
@@ -79,12 +98,12 @@ public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
     {
         if (!noStop)
         {
-            Debug.Log($"{_currentRound}/{rounds}");
+            Debug.Log($"SHELL: {_currentRound}/{rounds}");
             _currentRound++;
             if (_currentRound >= rounds)
             {
 #if UNITY_EDITOR
-                EditorApplication.isPlaying = false;
+                EditorApplication.Exit(0);
 #else
                 Application.Quit();
 #endif
@@ -134,7 +153,8 @@ public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
     private Dictionary<int, Vector3> ComputeTreeLayout(
         int nodeCount,
         float horizontalSpacing,
-        float verticalSpacing)
+        float verticalSpacing
+    )
     {
         var positions = new Dictionary<int, Vector3>(nodeCount);
         var visited = new HashSet<int>();
@@ -151,10 +171,12 @@ public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
             var current = queue.Dequeue();
             var currentDepth = depth[current];
             var neighbors = GetNeighborsOf(current);
-            if (neighbors == null) continue;
+            if (neighbors == null)
+                continue;
             foreach (var neighbor in neighbors)
             {
-                if (!visited.Add(neighbor)) continue;
+                if (!visited.Add(neighbor))
+                    continue;
                 var d = currentDepth + 1;
                 depth[neighbor] = d;
                 if (!layers.TryGetValue(d, out var list))
@@ -185,7 +207,8 @@ public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
             var layerIndex = kvp.Key;
             var nodesInLayer = kvp.Value;
             var count = nodesInLayer.Count;
-            if (count == 0) continue;
+            if (count == 0)
+                continue;
             var totalWidth = (count - 1) * horizontalSpacing;
             var startX = -totalWidth / 2f;
             var y = -layerIndex * verticalSpacing;
@@ -199,14 +222,16 @@ public class CollektiveEngineSocket : MonoBehaviour, IEngine, IEngineWithLinks
         return positions;
     }
 
-    private List<int> GetNeighborsOf(int id) => _links
-      .Where(l => l.Node1 == id || l.Node2 == id)
-      .Select(l => l.Node1 == id ? l.Node2 : l.Node1)
-      .ToList();
+    private List<int> GetNeighborsOf(int id) =>
+        _links
+            .Where(l => l.Node1 == id || l.Node2 == id)
+            .Select(l => l.Node1 == id ? l.Node2 : l.Node1)
+            .ToList();
 
     public double GetValue(int id) => _state[id];
 
-    public List<(NodeBehaviour, NodeBehaviour)> GetAllLinks() => _links.Select(l => (_nodes[l.Node1], _nodes[l.Node2])).ToList();
+    public List<(NodeBehaviour, NodeBehaviour)> GetAllLinks() =>
+        _links.Select(l => (_nodes[l.Node1], _nodes[l.Node2])).ToList();
 
     public bool IsSource(int id) => sources.Contains(id);
 }
