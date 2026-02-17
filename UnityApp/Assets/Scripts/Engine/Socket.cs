@@ -94,7 +94,7 @@ namespace Engine
                         WriteTimings.Invoke("step.socket.parse", tParse0, tParse1);
 
                         if (rid != -1 && _pendingSteps.TryRemove(rid, out var startTicks))
-                            WriteTimings.Invoke("step.socket.wait", startTicks, tParse1);
+                            WriteTimings.Invoke("step.socket.wait", startTicks, tParse0);
                     }
                     else
                     {

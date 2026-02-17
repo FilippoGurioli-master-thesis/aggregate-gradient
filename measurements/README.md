@@ -86,4 +86,3 @@ Overall, the measurements quantitatively demonstrate that native integration is 
 ### Front-end Ent-to-End Latency Distribution
 
 ![Front-end end-to-end latency distribution](./charts/front-end-e2e.png)
-

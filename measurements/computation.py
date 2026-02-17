@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend for headless execution
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,17 +101,11 @@ def frontend_cost(df: pd.DataFrame) -> pd.Series:
 # ----------------------------
 
 def speedup(socket_series: pd.Series, native_series: pd.Series) -> dict:
-    """
-    speedup = socket / native
-    """
-    n = min(len(socket_series), len(native_series))
-    ratio = socket_series.iloc[:n].values / native_series.iloc[:n].values
-
     return {
-        "mean_speedup": np.mean(ratio),
-        "median_speedup": np.median(ratio),
-        "p95_speedup": np.quantile(ratio, 0.95),
-        "p99_speedup": np.quantile(ratio, 0.99),
+        "mean_speedup": socket_series.mean() / native_series.mean(),
+        "median_speedup": socket_series.median() / native_series.median(),
+        "p95_speedup": socket_series.quantile(0.95) / native_series.quantile(0.95),
+        "p99_speedup": socket_series.quantile(0.99) / native_series.quantile(0.99),
     }
 
 
@@ -117,7 +113,7 @@ def speedup(socket_series: pd.Series, native_series: pd.Series) -> dict:
 # 6. Plotting
 # ----------------------------
 
-def plot_latency(series_dict: dict, title: str):
+def plot_latency(series_dict: dict, title: str, filename: str):
     plt.figure(figsize=(8, 5))
     for label, s in series_dict.items():
         plt.plot(s.reset_index(drop=True), label=label)
@@ -127,10 +123,11 @@ def plot_latency(series_dict: dict, title: str):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"charts/{filename}")
+    plt.close()
 
 
-def plot_box(series_dict: dict, title: str):
+def plot_box(series_dict: dict, title: str, filename: str):
     plt.figure(figsize=(6, 4))
     plt.boxplot(
         series_dict.values(),
@@ -141,7 +138,8 @@ def plot_box(series_dict: dict, title: str):
     plt.title(title)
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"charts/{filename}")
+    plt.close()
 
 def print_stats_block(title: str, native: dict, socket: dict, unit: str = "ns"):
     print(f"\n=== {title} ===")
@@ -192,6 +190,7 @@ def print_speedup_block(title: str, speedup_stats: dict):
 # ----------------------------
 
 def main():
+    Path("charts").mkdir(exist_ok=True)
     dfs = {k: preprocess(v) for k, v in FILES.items()}
 
     # Backend overheads
@@ -235,6 +234,7 @@ def main():
             "Socket BE overhead": socket_be_overhead,
         },
         "Backend overhead comparison",
+        "back-end-overhead.png",
     )
 
     plot_box(
@@ -243,6 +243,7 @@ def main():
             "Socket FE e2e": socket_fe_cost,
         },
         "Frontend end-to-end comparison",
+        "front-end-e2e.png",
     )
 
 
