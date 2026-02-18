@@ -123,6 +123,7 @@ def plot_latency(series_dict: dict, title: str, filename: str):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(f"charts/{filename}")
     plt.savefig(f"charts/{filename}.pdf")
     plt.close()
 
@@ -139,6 +140,7 @@ def plot_box(series_dict: dict, title: str, filename: str):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(f"charts/{filename}.pdf")
+    plt.savefig(f"charts/{filename}")
     plt.close()
 
 def print_stats_block(title: str, native: dict, socket: dict, unit: str = "ns"):
@@ -234,7 +236,7 @@ def main():
             "Socket BE overhead": socket_be_overhead,
         },
         "Backend overhead comparison",
-        "back-end-overhead.png",
+        "back-end-overhead",
     )
 
     plot_box(
@@ -243,7 +245,7 @@ def main():
             "Socket FE e2e": socket_fe_cost,
         },
         "Frontend end-to-end comparison",
-        "front-end-e2e.png",
+        "front-end-e2e",
     )
 
 
