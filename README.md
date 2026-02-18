@@ -91,11 +91,11 @@ Overall, the measurements quantitatively demonstrate that native integration is 
 
 ### Back-end Overhead Distribution
 
-![Back-end overhead distribution](./charts/back-end-overhead.png)
+![Back-end overhead distribution](measurements/charts/back-end-overhead.png)
 
 ### Front-end Ent-to-End Latency Distribution
 
-![Front-end end-to-end latency distribution](./charts/front-end-e2e.png)
+![Front-end end-to-end latency distribution](measurements/charts/front-end-e2e.png)
 
 # Reproduce the experiment
 There are two ways to reproduce the experiment, either by running the benchmark script or by using the pre-run data in `measurements/data` and running the `computation.py` script to generate the charts in `measurements/charts`.
