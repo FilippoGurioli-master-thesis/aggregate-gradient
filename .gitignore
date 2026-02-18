@@ -1,1 +1,14 @@
+<<<<<<< HEAD
 *.log
+=======
+# Log
+FFI-unity-benchmark.log
+socket-unity-benchmark.log
+
+# Editors
+**/.vscode
+**/.idea
+
+# Other
+UnityApp/UnityApp.slnx
+>>>>>>> c3ee964 (feat: update computation script to automatically generate pdf charts and project cleanup)

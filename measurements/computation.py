@@ -123,7 +123,7 @@ def plot_latency(series_dict: dict, title: str, filename: str):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(f"charts/{filename}")
+    plt.savefig(f"charts/{filename}.pdf")
     plt.close()
 
 
@@ -138,7 +138,7 @@ def plot_box(series_dict: dict, title: str, filename: str):
     plt.title(title)
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(f"charts/{filename}")
+    plt.savefig(f"charts/{filename}.pdf")
     plt.close()
 
 def print_stats_block(title: str, native: dict, socket: dict, unit: str = "ns"):
